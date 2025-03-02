@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import config from './config.json';
 
 function parseLink(link: string) {
@@ -36,7 +36,7 @@ async function start(code: string, i: number) {
   }
 
   async function getServer(code: string) {
-    return await fetch(`https://garticphone.com/api/server?code=${code}`, {headers}).then((res) => res.text());
+    return await fetch(`https://garticphone.com/api/server?code=${code}`, { headers }).then((res) => res.text());
   }
 
   async function getSocketInfo(server: string): Promise<{
@@ -56,7 +56,7 @@ async function start(code: string, i: number) {
     // A random username is generated because the game does not allow multiple players with the same username
     const username = config.username + Math.floor(Math.random() * 10000);
     //         payload length:42[1, uuid, username, avatar, lang, viewer, access, modCode, invite]
-    const data = JSON.stringify([1, userId, username, 12, "en", false, code, null, null]);
+    const data = JSON.stringify([1, userId, username, 12, 'en', false, code, null, null]);
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -70,12 +70,12 @@ async function start(code: string, i: number) {
 
   async function getGameInfo(server: string, sessionId: string) {
     const url = `${server}/socket.io/?EIO=3&transport=polling&t=${generateID()}&sid=${sessionId}`;
-    const res = await fetch(url, {headers}).then(res => res.text());
+    const res = await fetch(url, { headers }).then(res => res.text());
     if (res === '1:61:1') return null;
     try {
       const start = res.indexOf('[');
       if (start === -1) throw new Error(res);
-      let jsonRes = res.slice(start);
+      const jsonRes = res.slice(start);
       const json = JSON.parse(jsonRes)[1];
       if (json.error) {
         if (json.error === 4) throw new Error('Game is full');
@@ -102,11 +102,12 @@ async function start(code: string, i: number) {
     headers: {
       Cookie: `io=${socketInfo.sid}`,
       Origin: 'https://garticphone.com',
+      // For some reason, this UA is not blocked by Cloudflare
       'User-Agent': 'insomnia/2023.6.0',
     },
     perMessageDeflate: true,
   });
-  await fetch(`${server}/socket.io/?EIO=3&transport=polling&t=${generateID()}&sid=${socketInfo.sid}`, {headers});
+  await fetch(`${server}/socket.io/?EIO=3&transport=polling&t=${generateID()}&sid=${socketInfo.sid}`, { headers });
 
   io.addEventListener('open', () => {
     log('Connected to game session!');
